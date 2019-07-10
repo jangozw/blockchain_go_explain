@@ -17,6 +17,7 @@ type UTXOSet struct {
 // 找到用户可花费的输出，满足花费的金额即可，返回的可花费的金额 和 对应的交易输出的下标
 // 注意返回的可花费的金额accumulated 是 大于等于 要花费的金额的，因为可花费金额是该用户的多笔不同金额的utxo累加的
 // 如果返回的utxo金额累计大于要花费的金额，则多出的部分就是找零，相当于多个utxo是面额不同的金额累加成一个大额
+//注意： 返回的第二个参数是某笔交易的某个下标 如 trans[txid_1111]=1 就是txid_1111这个交易的下标为1的输出被选用了
 // FindSpendableOutputs finds and returns unspent outputs to reference in inputs
 func (u UTXOSet) FindSpendableOutputs(pubkeyHash []byte, amount int) (int, map[string][]int) {
 	unspentOutputs := make(map[string][]int)

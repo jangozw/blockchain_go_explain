@@ -20,8 +20,8 @@ const subsidy = 10
 // Transaction represents a Bitcoin transaction
 type Transaction struct {
 	ID   []byte
-	Vin  []TXInput
-	Vout []TXOutput
+	Vin  []TXInput // 引用的utxo
+	Vout []TXOutput // 要花费多少
 }
 
 // IsCoinbase checks whether the transaction is coinbase
@@ -54,6 +54,7 @@ func (tx *Transaction) Hash() []byte {
 	return hash[:]
 }
 
+// 参数解释: privKey 是发送方的私钥， prevTXs 是发送方的utxo对应的交易 交易id=>交易信息
 // Sign signs each input of a Transaction
 func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transaction) {
 	if tx.IsCoinbase() {
@@ -65,12 +66,13 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 			log.Panic("ERROR: Previous transaction is not correct")
 		}
 	}
-
+	//txCopy 就是完全的刚才的tx的copy
 	txCopy := tx.TrimmedCopy()
 
 	for inID, vin := range txCopy.Vin {
 		prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
 		txCopy.Vin[inID].Signature = nil
+		// 注意vin.Vout 是该账户之前存在的某比交易的某个可花费输出的下标
 		txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
 
 		dataToSign := fmt.Sprintf("%x\n", txCopy)
@@ -212,7 +214,7 @@ func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet)
 		if err != nil {
 			log.Panic(err)
 		}
-
+		//out 是utxo的某笔交易输出的下标
 		for _, out := range outs {
 			input := TXInput{txID, out, nil, wallet.PublicKey}
 			inputs = append(inputs, input)

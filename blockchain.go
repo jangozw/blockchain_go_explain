@@ -320,7 +320,7 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) *Block {
 // SignTransaction signs inputs of a Transaction
 func (bc *Blockchain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey) {
 	prevTXs := make(map[string]Transaction)
-
+	// 根据utxo查询出对应的交易Transaction
 	for _, vin := range tx.Vin {
 		prevTX, err := bc.FindTransaction(vin.Txid)
 		if err != nil {
